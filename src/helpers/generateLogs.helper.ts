@@ -69,7 +69,13 @@ export const generateLog = async (guild: Guild, data: ILogParams): Promise<void>
                     content: message.content
                 })
             }
-            const nameFile = `./generatedLogs/logs_of_${data.channelName}.json`;
+
+            const pathFile = `./generatedLogs`;
+            const nameFile = `${pathFile}/logs_of_${data.channelName}.json`;
+
+            if (!fs.existsSync(pathFile)) {
+                fs.mkdirSync(pathFile, { recursive: true });
+            }
 
             await guild.channels.fetch();
             const channelToSendLog = guild.channels.cache.get(data.logChannelId!);

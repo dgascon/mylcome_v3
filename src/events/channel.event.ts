@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { GuildChannel } from "discord.js";
+import { GuildChannel, TextChannel } from "discord.js";
 import type { ArgsOf } from "discordx";
 import { Discord, On } from "discordx";
 import 'dotenv/config';
@@ -13,7 +13,7 @@ export class EventChannel {
     @On("channelDelete")
     public async onChannelDelete([channel]: ArgsOf<"channelDelete">): Promise<void> {
         try {
-            if (channel instanceof GuildChannel) {
+            if (channel instanceof TextChannel) {
                 const isCachedChannel = await getChannelCacheByGuildId(channel.guildId!, channel.id);
 
                 if (isCachedChannel) {
