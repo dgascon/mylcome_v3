@@ -12,8 +12,8 @@
     "start": "node build/main.js",
     "start:dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node-esm' src/main.ts",
     "watch": "nodemon --exec ts-node-esm src/main.ts",
-    "prisma:generate": "yarn prisma generate",
-    "prisma:push": "yarn prisma db push"
+    "prisma:generate": "npx prisma generate",
+    "prisma:push": "npx prisma db push"
   },
   "dependencies": {
     "@discordx/importer": "^1.1.10",
