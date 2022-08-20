@@ -10,13 +10,20 @@
     "build:changelog": "npx @discordx/changelog --root=src",
     "dev": "ts-node-esm src/main.ts",
     "start": "node build/main.js",
-    "watch": "nodemon --exec ts-node-esm src/main.ts"
+    "start:dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node-esm' src/main.ts",
+    "watch": "nodemon --exec ts-node-esm src/main.ts",
+    "prisma:generate": "yarn prisma generate",
+    "prisma:push": "yarn prisma db push"
   },
   "dependencies": {
     "@discordx/importer": "^1.1.10",
     "@discordx/pagination": "^3.0.0",
+    "@prisma/client": "^4.2.1",
     "discord.js": "^14.0.2",
     "discordx": "^10.0.0",
+    "dotenv": "^16.0.1",
+    "fs": "^0.0.1-security",
+    "prisma": "^4.2.1",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {

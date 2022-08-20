@@ -1,9 +1,19 @@
 import "reflect-metadata";
 
 import { dirname, importx } from "@discordx/importer";
-import type { Interaction, Message } from "discord.js";
-import { IntentsBitField } from "discord.js";
+import { IntentsBitField, Message, Partials } from "discord.js";
 import { Client } from "discordx";
+
+import 'dotenv/config'
+import { PrismaClient } from "@prisma/client";
+
+import { ICachedMessage, loadChannelCache } from './helpers/channelCache.helper.js';
+
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
+export const prisma = new PrismaClient();
 
 export const bot = new Client({
   // To only use global commands (use @Guild for specific guild command), comment this line
@@ -15,50 +25,28 @@ export const bot = new Client({
     IntentsBitField.Flags.GuildMembers,
     IntentsBitField.Flags.GuildMessages,
     IntentsBitField.Flags.GuildMessageReactions,
-    IntentsBitField.Flags.GuildVoiceStates,
+    IntentsBitField.Flags.MessageContent
   ],
-
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction], // Necessary to receive reactions for uncached messages
   // Debug logs are disabled in silent mode
   silent: false,
-
-  // Configuration for @SimpleCommand
-  simpleCommand: {
-    prefix: "!",
-  },
 });
 
+export const cachedChannelIds: ICachedMessage[] = [];
+
 bot.once("ready", async () => {
-  // Make sure all guilds are cached
   await bot.guilds.fetch();
 
-  // Synchronize applications commands with Discord
-  await bot.initApplicationCommands();
-
-  // To clear all guild commands, uncomment this line,
-  // This is useful when moving from guild commands to global commands
-  // It must only be executed once
-  //
-  //  await bot.clearApplicationCommands(
-  //    ...bot.guilds.cache.map((g) => g.id)
-  //  );
+  await loadChannelCache();
 
   console.log("Bot started");
 });
 
-bot.on("interactionCreate", (interaction: Interaction) => {
+bot.on("interactionCreate", (interaction) => {
   bot.executeInteraction(interaction);
 });
 
-bot.on("messageCreate", (message: Message) => {
-  bot.executeCommand(message);
-});
-
 async function run() {
-  // The following syntax should be used in the commonjs environment
-  //
-  // await importx(__dirname + "/{events,commands}/**/*.{ts,js}");
-
-  // The following syntax should be used in the ECMAScript environment
   await importx(dirname(import.meta.url) + "/{events,commands}/**/*.{ts,js}");
 
   // Let's start the bot

@@ -1,0 +1,110 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Guild {
+    id           String   @id @unique
+    createdAt    DateTime @default(now())
+    logChannelId String?
+
+    users    User[]
+    channels Channel[]
+    configs  Config[]
+}
+
+model User {
+    id        Int      @id @default(autoincrement())
+    userId    String
+    username  String
+    avatarUrl String?
+    tag       String?
+    createdAt DateTime @default(now())
+
+    guildId String
+
+    channel Channel?
+
+    guild   Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
+    message Message[]
+
+    @@unique([userId, guildId])
+}
+
+model Channel {
+    id        Int      @id @default(autoincrement())
+    channelId String
+    createdAt DateTime @default(now())
+
+    guildId  String
+    userId   Int    @unique
+    configId Int
+
+    messages Message[]
+
+    guild  Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    config Config @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+    @@unique([channelId, guildId])
+}
+
+model Message {
+    id        Int      @id @default(autoincrement())
+    messageId String
+    content   String
+    createdAt DateTime @default(now())
+
+    userId    Int
+    channelId Int
+
+    channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([messageId, channelId])
+}
+
+model Config {
+    id           Int      @id @default(autoincrement())
+    createdAt    DateTime @default(now())
+    channelName  String   @default("Channel-de-{username}")
+    presentation String   @default("Bienvenue {username}")
+    parentId     String?
+
+    guildId String
+
+    guild     Guild      @relation(fields: [guildId], references: [id], onDelete: Cascade)
+    reactions Reaction[]
+    channels  Channel[]
+    roles     Role[]
+}
+
+model Reaction {
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+    emoji     String
+    rule      String
+
+    configId Int
+
+    config Config @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+    @@unique([emoji, configId])
+}
+
+model Role {
+    id        Int      @id @default(autoincrement())
+    roleId    String
+    createdAt DateTime @default(now())
+    toRemove  Boolean  @default(false)
+
+    configId Int
+
+    config Config @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+    @@unique([roleId, toRemove, configId])
+}

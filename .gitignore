@@ -1,4 +1,6 @@
 # files
+stack_dev.yml
+src/commands/*
 .vscode
 .env
 .env.local

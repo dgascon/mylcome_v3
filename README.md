@@ -32,7 +32,7 @@
     /></a>
   </p>
   <p align="center">
-    <b> Create a discord bot with TypeScript and Decorators! </b>
+    <b> Create an welcome room! </b>
   </p>
 </div>
 
