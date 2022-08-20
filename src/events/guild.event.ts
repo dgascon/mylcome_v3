@@ -66,9 +66,6 @@ export class EventGuild {
             await channelText.permissionOverwrites.edit(member.id, {
                 ViewChannel: true
             });
-            await channelText.permissionOverwrites.edit(bot.botId, {
-                ViewChannel: true
-            });
 
             if (config.roles && config.roles.length > 0) {
                 await member.roles.add(config.roles.map(r => r.roleId), "New User")
