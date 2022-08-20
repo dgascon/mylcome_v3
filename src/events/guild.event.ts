@@ -6,7 +6,7 @@ import 'dotenv/config';
 import { ConfigNotFound } from "../errors/configNotFound.error.js";
 import { createGuildChannelText, sendMessageToChannel } from "../helpers/channel.helper.js";
 import { generatingText } from '../helpers/templatingGenerator.helper.js';
-import { prisma } from "../main.js";
+import { prisma, bot } from "../main.js";
 
 @Discord()
 export class EventGuild {
@@ -64,6 +64,9 @@ export class EventGuild {
             const channelText = await createGuildChannelText(member, config);
 
             await channelText.permissionOverwrites.edit(member.id, {
+                ViewChannel: true
+            });
+            await channelText.permissionOverwrites.edit(bot.botId, {
                 ViewChannel: true
             });
 
