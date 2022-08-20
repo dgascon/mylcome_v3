@@ -10,46 +10,50 @@ import { ICheckMessageReaction, checkMessageReaction } from "../helpers/messageR
 export class EventMessage {
     @On("messageCreate")
     public async onMessageCreate([message]: ArgsOf<"messageCreate">): Promise<void> {
-        const isCachedChannel = await getChannelCacheByGuildId(message.guildId!, message.channelId);
+        try {
+            const isCachedChannel = await getChannelCacheByGuildId(message.guildId!, message.channelId);
 
-        if (isCachedChannel) {
-            let content = message.content;
+            if (isCachedChannel) {
+                let content = message.content;
 
-            if (message.embeds.length > 0) {
-                content += `\n${message.embeds.map(r => r.description).join('\n')}`
-            }
+                if (message.embeds.length > 0) {
+                    content += `\n${message.embeds.map(r => r.description).join('\n')}`
+                }
 
-            await prisma.message.create({
-                data: {
-                    messageId: message.id,
-                    content,
-                    user: {
-                        connectOrCreate: {
-                            create: {
-                                userId: message.author.id,
-                                username: message.author.username,
-                                avatarUrl: message.author.avatarURL({ extension: "jpg" }) ?? message.author.defaultAvatarURL,
-                                guildId: message.guildId!,
-                                tag: message.author.tag,
-                            },
-                            where: {
-                                userId_guildId: {
+                await prisma.message.create({
+                    data: {
+                        messageId: message.id,
+                        content,
+                        user: {
+                            connectOrCreate: {
+                                create: {
+                                    userId: message.author.id,
+                                    username: message.author.username,
+                                    avatarUrl: message.author.avatarURL({ extension: "jpg" }) ?? message.author.defaultAvatarURL,
                                     guildId: message.guildId!,
-                                    userId: message.author.id
+                                    tag: message.author.tag,
+                                },
+                                where: {
+                                    userId_guildId: {
+                                        guildId: message.guildId!,
+                                        userId: message.author.id
+                                    }
+                                }
+                            }
+                        },
+                        channel: {
+                            connect: {
+                                channelId_guildId: {
+                                    channelId: message.channelId,
+                                    guildId: message.guildId!
                                 }
                             }
                         }
                     },
-                    channel: {
-                        connect: {
-                            channelId_guildId: {
-                                channelId: message.channelId,
-                                guildId: message.guildId!
-                            }
-                        }
-                    }
-                },
-            })
+                })
+            }
+        } catch (e) {
+            console.log(e);
         }
     }
 

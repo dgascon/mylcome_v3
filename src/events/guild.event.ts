@@ -12,23 +12,31 @@ import { prisma } from "../main.js";
 export class EventGuild {
     @On("guildCreate")
     public async onGuildCreate([guild]: ArgsOf<"guildCreate">): Promise<void> {
-        await prisma.guild.create({
-            data: {
-                id: guild.id,
-                configs: {
-                    create: [{}]
+        try {
+            await prisma.guild.create({
+                data: {
+                    id: guild.id,
+                    configs: {
+                        create: [{}]
+                    }
                 }
-            }
-        });
+            });
+        } catch (e) {
+            console.log(e)
+        }
     }
 
     @On("guildDelete")
     public async onGuildDelete([guild]: ArgsOf<"guildDelete">): Promise<void> {
-        await prisma.guild.delete({
-            where: {
-                id: guild.id
-            }
-        });
+        try {
+            await prisma.guild.delete({
+                where: {
+                    id: guild.id
+                }
+            });
+        } catch (e) {
+            console.log(e)
+        }
     }
 
     @On("guildMemberAdd")
