@@ -1,7 +1,15 @@
 version: "3"
 services:
-  app:
-    build: .
-    command: node build/main.js
-    env_file:
-      - '.env'
+  # app:
+  #   build: .
+  #   command: node build/main.js
+  #   env_file:
+  #     - '.env'
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mylcome
+    ports:
+      - "5432:5432"

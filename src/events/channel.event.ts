@@ -1,67 +1,64 @@
 import { Prisma } from "@prisma/client";
-import { GuildChannel, TextChannel } from "discord.js";
+import { TextChannel } from "discord.js";
 import type { ArgsOf } from "discordx";
 import { Discord, On } from "discordx";
-import 'dotenv/config';
-import { getChannelCacheByGuildId, removeChannelCache } from "../helpers/channelCache.helper.js";
+import "dotenv/config";
 import { generateLog } from "../helpers/generateLogs.helper.js";
-import { prisma } from '../main.js';
+import { prisma } from "../main.js";
 
 @Discord()
 export class EventChannel {
+  @On("channelDelete")
+  public async onChannelDelete([
+    channel,
+  ]: ArgsOf<"channelDelete">): Promise<void> {
+    console.log(`[EventChannel] EventChannel.onChannelDelete`);
+    try {
+      if (channel instanceof TextChannel) {
+        const channelDeleted = await prisma.channel.findFirst({
+          where: {
+            channelId: channel.id,
+            guildId: channel.guildId,
+          },
+          include: {
+            guild: true,
+            user: true,
+          },
+        });
 
-    @On("channelDelete")
-    public async onChannelDelete([channel]: ArgsOf<"channelDelete">): Promise<void> {
-        try {
-            if (channel instanceof TextChannel) {
-                const isCachedChannel = await getChannelCacheByGuildId(channel.guildId!, channel.id);
+        if (channelDeleted) {
+          await generateLog(channel.guild, {
+            channelId: channel.id,
+            channelName: channel.name,
+            logChannelId: channelDeleted?.guild.logChannelId ?? null,
+          });
 
-                if (isCachedChannel) {
-                    await removeChannelCache({
-                        channelId: isCachedChannel.channelId,
-                        guildId: isCachedChannel.guildId,
-                    });
-
-                    const channelDeleted = await prisma.channel.findFirst({
-                        where: {
-                            channelId: channel.id,
-                            guildId: channel.guildId
-                        },
-                        include: {
-                            guild: true,
-                            user: true,
-                        }
-                    });
-
-                    await generateLog(channel.guild, {
-                        channelId: channel.id,
-                        channelName: channel.name,
-                        logChannelId: channelDeleted?.guild.logChannelId ?? null
-                    });
-
-                    await prisma.user.delete({
-                        where: {
-                            userId_guildId: {
-                                userId: channelDeleted!.user.userId,
-                                guildId: channelDeleted!.guild.id
-                            }
-                        },
-                        include: {
-                            channel: true,
-                        }
-                    }).catch((e) => {
-                        if (e instanceof Prisma.PrismaClientKnownRequestError) {
-                            if (e.code !== 'P2025') {
-                                throw e;
-                            }
-                        } else {
-                            throw e;
-                        }
-                    })
+          await prisma.user
+            .delete({
+              where: {
+                userId_guildId: {
+                  userId: channelDeleted!.user.userId,
+                  guildId: channelDeleted!.guild.id,
+                },
+              },
+              include: {
+                channel: true,
+              },
+            })
+            .catch((e) => {
+              if (e instanceof Prisma.PrismaClientKnownRequestError) {
+                if (e.code !== "P2025") {
+                  throw e;
                 }
-            }
-        } catch (e) {
-            console.log(e);
+              } else {
+                throw e;
+              }
+            });
         }
+      }
+    } catch (e) {
+      console.log(e);
     }
+    console.log("".padEnd(100, "="));
+  }
 }
